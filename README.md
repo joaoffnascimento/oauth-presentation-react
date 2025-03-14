@@ -1,6 +1,6 @@
 # 🚀 OAuth2 & OpenID Connect - Apresentação Interativa
 
-![Banner](https://placeholder.svg?height=200&width=800)
+![Banner](https://github.com/joaoffnascimento/oauth-presentation-react/blob/main/docs/banner.png?raw=true)
 
 ## 🎭 O que é isso?
 
