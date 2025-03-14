@@ -10,8 +10,21 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import ParticleBackground from "./particle-background"
+import { XPDisplay } from "./xp-system"
+import LevelUpEffect from "./level-up-effect"
 
 const TOTAL_SLIDES = 7
+
+// XP ganho por slide
+const XP_PER_SLIDE = {
+  1: 100, // Slide introdutório
+  2: 150,
+  3: 200,
+  4: 250,
+  5: 300,
+  6: 400,
+  7: 600, // Slide final dá mais XP
+}
 
 interface SlideLayoutProps {
   children: React.ReactNode
@@ -19,17 +32,73 @@ interface SlideLayoutProps {
   className?: string
 }
 
+// Modificar o SlideLayout para mostrar o Level Up apenas ao sair do slide
 export default function SlideLayout({ children, currentSlide, className }: SlideLayoutProps) {
   const router = useRouter()
   const [isAnimating, setIsAnimating] = useState(false)
   const [xpGained, setXpGained] = useState(0)
+  const [visitedSlides, setVisitedSlides] = useState<number[]>([])
+  const [showLevelUp, setShowLevelUp] = useState(false)
+  const [newTier, setNewTier] = useState("")
+  const [pendingLevelUp, setPendingLevelUp] = useState<string | null>(null)
+
+  // Carregar XP do localStorage na inicialização
+  useEffect(() => {
+    const savedXP = localStorage.getItem("oauth_presentation_xp")
+    const savedVisited = localStorage.getItem("oauth_presentation_visited")
+    const pendingTier = localStorage.getItem("oauth_presentation_pending_tier")
+
+    if (savedXP) {
+      setXpGained(Number.parseInt(savedXP))
+    }
+
+    if (savedVisited) {
+      setVisitedSlides(JSON.parse(savedVisited))
+    }
+
+    if (pendingTier) {
+      setPendingLevelUp(pendingTier)
+      localStorage.removeItem("oauth_presentation_pending_tier")
+      setShowLevelUp(true)
+      setNewTier(pendingTier)
+    }
+  }, [])
+
+  // Salvar XP no localStorage quando mudar
+  useEffect(() => {
+    localStorage.setItem("oauth_presentation_xp", xpGained.toString())
+    localStorage.setItem("oauth_presentation_visited", JSON.stringify(visitedSlides))
+
+    if (pendingLevelUp) {
+      localStorage.setItem("oauth_presentation_pending_tier", pendingLevelUp)
+    }
+  }, [xpGained, visitedSlides, pendingLevelUp])
+
+  // Adicionar XP quando visitar um novo slide
+  useEffect(() => {
+    if (!visitedSlides.includes(currentSlide)) {
+      const newVisited = [...visitedSlides, currentSlide]
+      setVisitedSlides(newVisited)
+
+      // Adicionar XP para o slide atual
+      const xpToAdd = XP_PER_SLIDE[currentSlide as keyof typeof XP_PER_SLIDE] || 100
+      setXpGained((prev) => prev + xpToAdd)
+    }
+  }, [currentSlide, visitedSlides])
 
   const goToNextSlide = () => {
     if (currentSlide < TOTAL_SLIDES) {
       setIsAnimating(true)
+
+      // Mostrar level up se houver um pendente
+      if (pendingLevelUp) {
+        setShowLevelUp(true)
+        setNewTier(pendingLevelUp)
+        setPendingLevelUp(null)
+      }
+
       setTimeout(() => {
         router.push(`/slides/${currentSlide + 1}`)
-        setXpGained((prev) => prev + Math.floor(Math.random() * 50) + 50)
       }, 300)
     }
   }
@@ -37,6 +106,14 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
   const goToPrevSlide = () => {
     if (currentSlide > 1) {
       setIsAnimating(true)
+
+      // Mostrar level up se houver um pendente
+      if (pendingLevelUp) {
+        setShowLevelUp(true)
+        setNewTier(pendingLevelUp)
+        setPendingLevelUp(null)
+      }
+
       setTimeout(() => {
         router.push(`/slides/${currentSlide - 1}`)
       }, 300)
@@ -54,11 +131,16 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [currentSlide])
+  }, [currentSlide, pendingLevelUp])
 
   useEffect(() => {
     setIsAnimating(false)
   }, [currentSlide])
+
+  const handleLevelUp = (tier: string) => {
+    // Em vez de mostrar imediatamente, armazenar para mostrar na próxima navegação
+    setPendingLevelUp(tier)
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-900 to-slate-800 text-white">
@@ -71,10 +153,7 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
         </Link>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 rounded-full border border-purple-500/30 bg-slate-800/50 px-3 py-1 text-sm font-medium text-purple-400">
-            <span>XP</span>
-            <span className="text-white">{xpGained}</span>
-          </div>
+          <XPDisplay xp={xpGained} onLevelUp={handleLevelUp} />
 
           <div className="flex items-center gap-2 rounded-full border border-blue-500/30 bg-slate-800/50 px-3 py-1 text-sm font-medium text-blue-400">
             <span>Progresso</span>
@@ -144,11 +223,20 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
           Anterior
         </Button>
 
-        <div className="h-2 w-48 overflow-hidden rounded-full bg-slate-800">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
-            style={{ width: `${(currentSlide / TOTAL_SLIDES) * 100}%` }}
-          ></div>
+        <div className="flex flex-col items-center">
+          <div className="h-2 w-48 overflow-hidden rounded-full bg-slate-800">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
+              style={{ width: `${(currentSlide / TOTAL_SLIDES) * 100}%` }}
+            ></div>
+          </div>
+          <div className="mt-1 text-xs text-slate-400">
+            {!visitedSlides.includes(currentSlide) && (
+              <span className="text-green-400">
+                +{XP_PER_SLIDE[currentSlide as keyof typeof XP_PER_SLIDE] || 100} XP
+              </span>
+            )}
+          </div>
         </div>
 
         <Button
@@ -161,6 +249,9 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
           <ArrowRight size={16} />
         </Button>
       </footer>
+
+      {/* Efeito de Level Up */}
+      <LevelUpEffect tier={newTier} isVisible={showLevelUp} onClose={() => setShowLevelUp(false)} />
     </div>
   )
 }

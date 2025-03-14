@@ -32,7 +32,7 @@ export default function Home() {
 
           <div className="flex items-center gap-2 rounded-full border border-purple-500/30 bg-slate-900/50 px-4 py-2 text-sm text-purple-400">
             <span className="h-2 w-2 rounded-full bg-purple-400"></span>
-            XP Ganho: +500
+            XP Ganho: +2000
           </div>
 
           <div className="flex items-center gap-2 rounded-full border border-indigo-500/30 bg-slate-900/50 px-4 py-2 text-sm text-indigo-400">

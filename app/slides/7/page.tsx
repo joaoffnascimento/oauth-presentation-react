@@ -6,16 +6,28 @@ export default function Slide7() {
   return (
     <SlideLayout currentSlide={7}>
       <div className="slide-content">
-        <AnimatedAppear>
-          <h1 className="slide-title">Conclusão e Discussões</h1>
+        <AnimatedAppear glow>
+          <div className="mb-2 text-center">
+            <span className="inline-block rounded-full border border-purple-500/30 bg-slate-900/50 px-4 py-1 text-sm font-medium text-purple-400">
+              CAPÍTULO FINAL
+            </span>
+          </div>
+          <h1 className="slide-title">
+            <span className="bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
+              Conclusão e Discussões
+            </span>
+          </h1>
         </AnimatedAppear>
 
         <AnimatedAppear delay={300}>
           <h2 className="slide-subtitle">Recapitulação dos Pontos-Chave</h2>
 
           <div className="mb-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4">
-              <h3 className="mb-2 font-semibold text-blue-400">OAuth2</h3>
+            <div className="game-card rounded-lg p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-semibold text-blue-400">OAuth2</h3>
+                <span className="level-badge">A Tier</span>
+              </div>
               <ul className="space-y-1 text-sm">
                 <li>
                   • Protocolo de <span className="font-medium">autorização</span>
@@ -27,8 +39,11 @@ export default function Slide7() {
               </ul>
             </div>
 
-            <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4">
-              <h3 className="mb-2 font-semibold text-blue-400">OpenID Connect</h3>
+            <div className="game-card rounded-lg p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-semibold text-blue-400">OpenID Connect</h3>
+                <span className="level-badge">S Tier</span>
+              </div>
               <ul className="space-y-1 text-sm">
                 <li>
                   • Camada de <span className="font-medium">autenticação</span> sobre OAuth2
@@ -46,8 +61,11 @@ export default function Slide7() {
           <h2 className="slide-subtitle">Vantagens e Desafios</h2>
 
           <div className="mb-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-green-500/30 bg-green-950/20 p-4">
-              <h3 className="mb-2 font-semibold text-green-400">Vantagens</h3>
+            <div className="game-card rounded-lg border-green-500/30 bg-green-950/20 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-semibold text-green-400">Vantagens</h3>
+                <span className="level-badge bg-gradient-to-r from-green-500 to-emerald-500">Buff</span>
+              </div>
               <ul className="space-y-1 text-sm">
                 <li>• Delegação de acesso sem compartilhar credenciais</li>
                 <li>• Padrões abertos e amplamente adotados</li>
@@ -57,8 +75,11 @@ export default function Slide7() {
               </ul>
             </div>
 
-            <div className="rounded-lg border border-orange-500/30 bg-orange-950/20 p-4">
-              <h3 className="mb-2 font-semibold text-orange-400">Desafios</h3>
+            <div className="game-card rounded-lg border-orange-500/30 bg-orange-950/20 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-semibold text-orange-400">Desafios</h3>
+                <span className="level-badge bg-gradient-to-r from-orange-500 to-red-500">Debuff</span>
+              </div>
               <ul className="space-y-1 text-sm">
                 <li>• Complexidade de implementação</li>
                 <li>• Segurança depende de implementação correta</li>
@@ -74,8 +95,11 @@ export default function Slide7() {
           <h2 className="slide-subtitle">Recursos Adicionais</h2>
 
           <div className="mb-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4">
-              <h3 className="mb-2 font-semibold text-blue-400">Documentação e Especificações</h3>
+            <div className="game-card rounded-lg p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-semibold text-blue-400">Documentação e Especificações</h3>
+                <span className="level-badge">Rare</span>
+              </div>
               <ul className="space-y-1 text-sm">
                 <li>
                   •{" "}
@@ -104,8 +128,11 @@ export default function Slide7() {
               </ul>
             </div>
 
-            <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4">
-              <h3 className="mb-2 font-semibold text-blue-400">Ferramentas e Bibliotecas</h3>
+            <div className="game-card rounded-lg p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-semibold text-blue-400">Ferramentas e Bibliotecas</h3>
+                <span className="level-badge">Epic</span>
+              </div>
               <ul className="space-y-1 text-sm">
                 <li>
                   •{" "}
@@ -140,9 +167,17 @@ export default function Slide7() {
           </div>
 
           <div className="mt-8 text-center">
+            <div className="mb-6 inline-block rounded-lg border border-amber-500/30 bg-amber-950/20 px-6 py-3">
+              <div className="text-sm font-medium text-amber-400">MISSÃO COMPLETA!</div>
+              <div className="mt-1 text-xl font-bold text-white">Especialista em OAuth2 & OIDC</div>
+              <div className="mt-2 text-sm text-slate-300">
+                Você desbloqueou o conhecimento necessário para implementar autenticação moderna
+              </div>
+            </div>
+
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-4 text-lg font-medium text-white transition-all hover:shadow-lg hover:shadow-blue-500/25"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-600 px-8 py-4 text-lg font-medium text-white transition-all hover:shadow-lg hover:shadow-purple-500/25"
             >
               Voltar ao Início
             </Link>
