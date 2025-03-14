@@ -228,7 +228,7 @@ export default function FlowDiagram({ steps, className, animationDelay = 500 }: 
 }
 
 // Adicionar estilos para animação das setas
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && document) {
   const style = document.createElement("style")
   style.textContent = `
     @keyframes dash {

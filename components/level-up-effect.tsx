@@ -112,7 +112,7 @@ function cn(...classes: (string | boolean | undefined)[]) {
 }
 
 // Adicione isso ao seu CSS global
-const style = document.createElement("style")
+const style = document!.createElement("style")
 style.textContent = `
   @keyframes float {
     0%, 100% {
@@ -132,5 +132,5 @@ style.textContent = `
     animation: float 2s ease-out forwards;
   }
 `
-document.head.appendChild(style)
+document!.head.appendChild(style)
 

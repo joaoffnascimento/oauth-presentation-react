@@ -69,7 +69,7 @@ export default function AnimatedAppear({
   )
 }
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && document) {
   const style = document.createElement("style")
   style.textContent = `
     @keyframes glow {
