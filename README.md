@@ -152,4 +152,4 @@ Este projeto está licenciado sob a licença MIT - veja o arquivo LICENSE para d
 
 Feito com ❤️ e muitos ☕ por você!
 
-_P.S.: Se esta apresentação ajudou seu chapter a entender OAuth2, considere dar uma estrela no GitHub!_
+_P.S.: Se esta apresentação lhe ajudou a entender mais sobre OAuth2, considere dar uma estrela no GitHub!_
