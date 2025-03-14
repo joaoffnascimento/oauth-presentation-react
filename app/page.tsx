@@ -1,8 +1,41 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import ParticleBackground from "@/components/particle-background"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const router = useRouter()
+  const [isRedirected, setIsRedirected] = useState(false)
+
+  // Verificar se o usuário já fez login
+  useEffect(() => {
+    const hasLoggedIn = localStorage.getItem("oauth_presentation_logged_in")
+
+    if (!hasLoggedIn) {
+      // Redirecionar para a página de login
+      router.push("/login")
+    } else {
+      setIsRedirected(true)
+    }
+  }, [router])
+
+  // Marcar como logado quando chegar nesta página
+  useEffect(() => {
+    localStorage.setItem("oauth_presentation_logged_in", "true")
+  }, [])
+
+  // Mostrar um loader enquanto verifica o login
+  if (!isRedirected) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 text-white">
       <ParticleBackground />
