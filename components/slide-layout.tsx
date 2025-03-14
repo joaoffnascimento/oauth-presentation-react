@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import ParticleBackground from "./particle-background"
-import { XPDisplay } from "./xp-system"
+import { XPDisplay, getTierFromXP } from "./xp-system"
 import LevelUpEffect from "./level-up-effect"
 
 const TOTAL_SLIDES = 7
@@ -32,7 +32,6 @@ interface SlideLayoutProps {
   className?: string
 }
 
-// Modificar o SlideLayout para mostrar o Level Up apenas ao sair do slide
 export default function SlideLayout({ children, currentSlide, className }: SlideLayoutProps) {
   const router = useRouter()
   const [isAnimating, setIsAnimating] = useState(false)
@@ -41,12 +40,15 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [newTier, setNewTier] = useState("")
   const [pendingLevelUp, setPendingLevelUp] = useState<string | null>(null)
+  const [lastTierShown, setLastTierShown] = useState<string>("")
+  const [isNavigating, setIsNavigating] = useState(false)
 
-  // Carregar XP do localStorage na inicialização
+  // Carregar XP e último tier do localStorage na inicialização
   useEffect(() => {
     const savedXP = localStorage.getItem("oauth_presentation_xp")
     const savedVisited = localStorage.getItem("oauth_presentation_visited")
     const pendingTier = localStorage.getItem("oauth_presentation_pending_tier")
+    const savedLastTierShown = localStorage.getItem("oauth_presentation_last_tier_shown")
 
     if (savedXP) {
       setXpGained(Number.parseInt(savedXP))
@@ -56,11 +58,18 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
       setVisitedSlides(JSON.parse(savedVisited))
     }
 
-    if (pendingTier) {
+    if (savedLastTierShown) {
+      setLastTierShown(savedLastTierShown)
+    } else {
+      // Inicializar com o tier atual baseado no XP inicial
+      const initialTier = getTierFromXP(Number.parseInt(savedXP || "0"))
+      setLastTierShown(initialTier)
+      localStorage.setItem("oauth_presentation_last_tier_shown", initialTier)
+    }
+
+    if (pendingTier && pendingTier !== savedLastTierShown) {
       setPendingLevelUp(pendingTier)
       localStorage.removeItem("oauth_presentation_pending_tier")
-      setShowLevelUp(true)
-      setNewTier(pendingTier)
     }
   }, [])
 
@@ -69,10 +78,14 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
     localStorage.setItem("oauth_presentation_xp", xpGained.toString())
     localStorage.setItem("oauth_presentation_visited", JSON.stringify(visitedSlides))
 
-    if (pendingLevelUp) {
+    if (pendingLevelUp && pendingLevelUp !== lastTierShown) {
       localStorage.setItem("oauth_presentation_pending_tier", pendingLevelUp)
     }
-  }, [xpGained, visitedSlides, pendingLevelUp])
+
+    if (lastTierShown) {
+      localStorage.setItem("oauth_presentation_last_tier_shown", lastTierShown)
+    }
+  }, [xpGained, visitedSlides, pendingLevelUp, lastTierShown])
 
   // Adicionar XP quando visitar um novo slide
   useEffect(() => {
@@ -86,19 +99,34 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
     }
   }, [currentSlide, visitedSlides])
 
+  // Efeito para mostrar o level up após a navegação ser concluída
+  useEffect(() => {
+    if (!isNavigating && pendingLevelUp && pendingLevelUp !== lastTierShown) {
+      // Pequeno atraso para garantir que a navegação foi concluída
+      const timer = setTimeout(() => {
+        setShowLevelUp(true)
+        setNewTier(pendingLevelUp)
+        setLastTierShown(pendingLevelUp)
+        setPendingLevelUp(null)
+        localStorage.removeItem("oauth_presentation_pending_tier")
+      }, 500)
+
+      return () => clearTimeout(timer)
+    }
+  }, [isNavigating, pendingLevelUp, lastTierShown])
+
   const goToNextSlide = () => {
     if (currentSlide < TOTAL_SLIDES) {
       setIsAnimating(true)
-
-      // Mostrar level up se houver um pendente
-      if (pendingLevelUp) {
-        setShowLevelUp(true)
-        setNewTier(pendingLevelUp)
-        setPendingLevelUp(null)
-      }
+      setIsNavigating(true)
 
       setTimeout(() => {
         router.push(`/slides/${currentSlide + 1}`)
+
+        // Definir um temporizador para marcar o fim da navegação
+        setTimeout(() => {
+          setIsNavigating(false)
+        }, 300)
       }, 300)
     }
   }
@@ -106,22 +134,27 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
   const goToPrevSlide = () => {
     if (currentSlide > 1) {
       setIsAnimating(true)
-
-      // Mostrar level up se houver um pendente
-      if (pendingLevelUp) {
-        setShowLevelUp(true)
-        setNewTier(pendingLevelUp)
-        setPendingLevelUp(null)
-      }
+      setIsNavigating(true)
 
       setTimeout(() => {
         router.push(`/slides/${currentSlide - 1}`)
+
+        // Definir um temporizador para marcar o fim da navegação
+        setTimeout(() => {
+          setIsNavigating(false)
+        }, 300)
       }, 300)
     }
   }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (showLevelUp) {
+        // Se o pop-up de level up estiver aberto, qualquer tecla o fecha
+        setShowLevelUp(false)
+        return
+      }
+
       if (e.key === "ArrowRight") {
         goToNextSlide()
       } else if (e.key === "ArrowLeft") {
@@ -131,15 +164,21 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [currentSlide, pendingLevelUp])
+  }, [currentSlide, pendingLevelUp, lastTierShown, showLevelUp])
 
   useEffect(() => {
     setIsAnimating(false)
   }, [currentSlide])
 
   const handleLevelUp = (tier: string) => {
-    // Em vez de mostrar imediatamente, armazenar para mostrar na próxima navegação
-    setPendingLevelUp(tier)
+    // Só definir como pendente se for um tier diferente do último mostrado
+    if (tier !== lastTierShown) {
+      setPendingLevelUp(tier)
+    }
+  }
+
+  const handleCloseLevelUp = () => {
+    setShowLevelUp(false)
   }
 
   return (
@@ -153,7 +192,7 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
         </Link>
 
         <div className="flex items-center gap-4">
-          <XPDisplay xp={xpGained} onLevelUp={handleLevelUp} />
+          <XPDisplay xp={xpGained} onLevelUp={handleLevelUp} lastTierShown={lastTierShown} />
 
           <div className="flex items-center gap-2 rounded-full border border-blue-500/30 bg-slate-800/50 px-3 py-1 text-sm font-medium text-blue-400">
             <span>Progresso</span>
@@ -251,7 +290,7 @@ export default function SlideLayout({ children, currentSlide, className }: Slide
       </footer>
 
       {/* Efeito de Level Up */}
-      <LevelUpEffect tier={newTier} isVisible={showLevelUp} onClose={() => setShowLevelUp(false)} />
+      <LevelUpEffect tier={newTier} isVisible={showLevelUp} onClose={handleCloseLevelUp} />
     </div>
   )
 }

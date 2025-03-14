@@ -72,10 +72,10 @@ interface XPDisplayProps {
   showTierProgress?: boolean
   className?: string
   onLevelUp?: (tier: keyof typeof XP_TIERS) => void
+  lastTierShown?: string
 }
 
-// Modificar o XPDisplay para não mostrar o efeito de level up imediatamente
-export function XPDisplay({ xp, showTierProgress = true, className, onLevelUp }: XPDisplayProps) {
+export function XPDisplay({ xp, showTierProgress = true, className, onLevelUp, lastTierShown = "" }: XPDisplayProps) {
   const [prevXP, setPrevXP] = useState(xp)
   const [prevTier, setPrevTier] = useState<keyof typeof XP_TIERS>(getTierFromXP(xp))
   const [isAnimating, setIsAnimating] = useState(false)
@@ -91,7 +91,7 @@ export function XPDisplay({ xp, showTierProgress = true, className, onLevelUp }:
 
       // Verificar se houve mudança de tier
       const newTier = getTierFromXP(xp)
-      if (newTier !== prevTier) {
+      if (newTier !== prevTier && newTier !== lastTierShown) {
         if (onLevelUp) onLevelUp(newTier)
       }
 
@@ -99,7 +99,7 @@ export function XPDisplay({ xp, showTierProgress = true, className, onLevelUp }:
     }
 
     setPrevXP(xp)
-  }, [xp, prevXP, prevTier, onLevelUp])
+  }, [xp, prevXP, prevTier, onLevelUp, lastTierShown])
 
   return (
     <div className={cn("flex items-center gap-3", className)}>

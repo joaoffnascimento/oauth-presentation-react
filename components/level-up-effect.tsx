@@ -8,14 +8,17 @@ interface LevelUpEffectProps {
   onClose: () => void
 }
 
-// Modificar o componente para adicionar um botão X para fechar
 export default function LevelUpEffect({ tier, isVisible, onClose }: LevelUpEffectProps) {
   const [particles, setParticles] = useState<
     Array<{ x: number; y: number; size: number; color: string; speed: number }>
   >([])
+  const [isClosing, setIsClosing] = useState(false)
 
+  // Reiniciar partículas quando o componente se torna visível
   useEffect(() => {
     if (isVisible) {
+      setIsClosing(false)
+
       // Criar partículas para o efeito
       const newParticles = []
       for (let i = 0; i < 50; i++) {
@@ -36,14 +39,30 @@ export default function LevelUpEffect({ tier, isVisible, onClose }: LevelUpEffec
     return colors[Math.floor(Math.random() * colors.length)]
   }
 
+  // Função para fechar com animação
+  const handleClose = () => {
+    setIsClosing(true)
+
+    // Aguardar a animação de saída antes de chamar onClose
+    setTimeout(() => {
+      onClose()
+    }, 300)
+  }
+
   if (!isVisible) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex items-center justify-center bg-black/70 transition-opacity duration-300",
+        isClosing ? "opacity-0" : "opacity-100",
+      )}
+      onClick={handleClose}
+    >
       <div className="relative" onClick={(e) => e.stopPropagation()}>
         {/* Botão X para fechar */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
           aria-label="Fechar"
         >
@@ -69,7 +88,12 @@ export default function LevelUpEffect({ tier, isVisible, onClose }: LevelUpEffec
         </div>
 
         {/* Conteúdo */}
-        <div className="animate-bounce rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 p-1">
+        <div
+          className={cn(
+            "animate-bounce rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 p-1 transition-transform duration-300",
+            isClosing ? "scale-95" : "scale-100",
+          )}
+        >
           <div className="rounded bg-slate-900 px-8 py-6 text-center">
             <div className="mb-4 text-2xl font-bold text-yellow-400">LEVEL UP!</div>
             <div className="mb-6 text-4xl font-extrabold text-white">Tier {tier} Alcançado!</div>
@@ -80,6 +104,11 @@ export default function LevelUpEffect({ tier, isVisible, onClose }: LevelUpEffec
       </div>
     </div>
   )
+}
+
+// Função de utilidade para combinar classes
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(" ")
 }
 
 // Adicione isso ao seu CSS global
