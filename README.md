@@ -122,7 +122,6 @@ Agora abra [http://localhost:3000](http://localhost:3000) no seu navegador e... 
    - Setas do teclado ← →
    - Menu dropdown no canto superior direito
 3. Aproveite as animações e diagramas interativos!
-4. Impressione seu chapter com seu conhecimento de OAuth2 e OIDC! 🧠💪
 
 ## 🔍 Conteúdo da Apresentação
 
